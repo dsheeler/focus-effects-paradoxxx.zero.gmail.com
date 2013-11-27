@@ -1,0 +1,19 @@
+{
+    "__readme__": "focus and blur object accepts: Tweener parameters (http://hosted.zeh.com.br/tweener/docs/en-us/) and ClutterActor properties (http://docs.clutter-project.org/docs/clutter/1.3/ClutterActor.html#ClutterActor.properties)",
+    "focus": {
+        "time": 2.0,
+        "transition": "easeOutQuad",
+        "rotation_angle_y": 0,
+        "rotation_angle_x": 0,
+        "rotation_angle_z": 0,
+        "opacity": 255
+    },
+    "blur": {
+        "time": 2.0,
+        "transition": "easeOutcwBounce",
+        "rotation_angle_y": 0,
+        "rotation_angle_x": 0,
+        "rotation_angle_z": 0,
+        "opacity": 120
+    }
+}
