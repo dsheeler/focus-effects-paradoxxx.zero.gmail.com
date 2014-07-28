@@ -45,7 +45,7 @@ function colorFromRGBA(rgba) {
                                        alpha: rgba.alpha * 255 });
         }
 
-const FLASHSPOT_ANIMATION_OUT_TIME = 0.75; // seconds
+const FLASHSPOT_ANIMATION_OUT_TIME = 2; // seconds
 
 const Flashspot = new Lang.Class({
     Name: 'Flashspot',
@@ -55,49 +55,43 @@ const Flashspot = new Lang.Class({
         this.parent(Main.uiGroup, { inhibitEvents: true,
                                     width: area.width,
                                     height: area.height });
-
         this.actor.style_class = 'focusflash';
         this.actor.set_position(area.x, area.y);
         this.app = tracker.get_window_app(windowMeta);
         let icon = this.app.create_icon_texture(area.height<area.width? area.height : area.width);
         this.actor.add_actor(icon);
-
         this.actor.scale_center_x =  0;
         this.actor.scale_center_y =  0;
-        this.actor.set_pivot_point(0, 0.5);
-
-/*        Tweener.addTween(this.actor, { opacity: 0, 
-         time: FLASHSPOT_ANIMATION_OUT_TIME, transition:'easeInExpo', 
-        });
-*/
-
+        icon.set_pivot_point(0.5, 0.5);
+        /*Tweener.addTween(icon, {
+          width: 0,
+          height: 0,
+          rotation_angle_z: 360,
+          time: FLASHSPOT_ANIMATION_OUT_TIME,
+          transition: 'easeInExpo'
+        });*/
         Tweener.addTween(this.actor, {
+          opacity: 0,
           y: -this.actor.height,
           time: FLASHSPOT_ANIMATION_OUT_TIME,
           onComplete: function() {
             this.destroy();
-          }, 
+          },
           transition: 'easeInExpo',
-         });
-
+        });
  		    let path = new Gtk.WidgetPath();
         path.append_type(Gtk.IconView);
-
         let context = new Gtk.StyleContext();
         context.set_path(path);
-        //context.add_class('rubberband');
- /* let context = new Gtk.StyleContext();*/
-
-        this.actor.border_width = '40px';
-        this.actor.border_radius = '20px';
-
-        this.actor.border_color = colorFromRGBA(context.get_border_color(Gtk.StateFlags.NORMAL));
-        this.actor.background_color = colorFromRGBA(context.get_background_color(Gtk.StateFlags.NORMAL));
+        let red = Math.random() * 0.333 + 0.333;
+        let green = Math.random() * 0.333 + 0.333;
+        let blue = Math.random() * 0.333 + 0.333;
+        this.actor.background_color = colorFromRGBA({ 'red': red, 'green': green, 'blue': blue, 'alpha': 1});
+        //this.actor.background_color = colorFromRGBA(context.get_background_color(Gtk.StateFlags.NORMAL));
     },
-
     fire: function() {
-        this.actor.show();
-        this.actor.opacity = 255;
+      this.actor.show();
+      this.actor.opacity = 200;
     }
 });
 
@@ -105,116 +99,43 @@ const Flashspot = new Lang.Class({
 
 
 function update () {
-
-
-    let running = app_system.get_running();
-    for(var i = 0; i < running.length; i++) {
-        let windows = running[i].get_windows();
-        for(var j = 0; j < windows.length; j++) {
-            if ((!display.focus_window) || (display.focus_window != windows[j])) {
-
-
-                let actor = windows[j].get_compositor_private();
-                if(actor) {
-                    //if (actor != display.focus_window.get_compositor_private()) {
-                    //if (!actor.has_key_focus()) {
-                    //Tweener.removeTweens(actor);
-                        if(animations.desaturate) {
-                            let fx = actor.get_effect('desaturate');
-                            if (!fx) {
-                                fx = new Clutter.DesaturateEffect();
-                                actor.add_effect_with_name('desaturate', fx);
-                            }
-                            Tweener.addTween(fx, { delay: animations.blur.time, factor: 1, time: 20});
-                        }
-                        /*
-                         let fx = actor.get_effect('tint');
-                         if (!fx) {
-                         fx = new Clutter.ColorizeEffect();
-                         actor.add_effect_with_name('tint', fx);
-                         }
-                         let mycolor = new Clutter.Color();
-                         mycolor.red = 0;
-                         mycolor.green = 0;
-                         mycolor.blue = 0;
-                         mycolor.alpha = 0;
-                         fx.tint = mycolor;
-                         Tweener.addTween(fx, { red: 120, green: 120, blue:160, time: 2});
-                         */
-
-                        //rfx.colorize_effect_set_tint(color);
-                        //Tweener.addTween(fx, { factor: 1, time: 2});
-                        //let vertex = new Clutter.Vertex();
-                        //actor.scale_center_x = vertex.x = actor.width / 2;
-                        //actor.scale_center_y = vertex.y = actor.height / 2;
-                        //actor.rotation_center_z = vertex;
-                        actor.set_pivot_point(0.5, 0.5);
-
-                       // Tweener.autoOverwrite = false;
-                        Tweener.addTween(actor, animations.blur);
-                        if (animations.blur2) {
-                            Tweener.addTween(actor, animations.blur2);
-                        }
-                    //}
-                }
-            }
-        }
-    }
-    if(display.focus_window) {
-        let actor = display.focus_window.get_compositor_private();
+  let running = app_system.get_running();
+  for(var i = 0; i < running.length; i++) {
+    let windows = running[i].get_windows();
+    for(var j = 0; j < windows.length; j++) {
+      if ((!display.focus_window) || (display.focus_window != windows[j])) {
+        let actor = windows[j].get_compositor_private();
         if(actor) {
-            //Tweener.removeTweens(actor);
-            //Tweener.autoOverwrite = true;
-                let fx = actor.get_effect('tint');
-                if (fx) {
-                    actor.remove_effect(fx);
-                }
-
-
-
-			 /*let flashspot = new Flashspot({ x : actor.x, y : actor.y, width: actor.width, height: actor.height}, display.focus_window);
-      	 flashspot.fire();
-
-      	 Tweener.addCaller(flashspot, {onUpdate:flashspot.fire, time:1, count:1});*/
-/*
-
- 		let clutter_text = new Clutter.Text();
-		clutter_text.set_text("Hello from fartland");
-		clutter_text.set_font_name("ubuntu 144");
-		clutter_text.set_position(200, 200);
-		Main.uiGroup.add_actor(clutter_text);
-                let vertex = new Clutter.Vertex();
-                clutter_text.scale_center_x = vertex.x = actor.width / 2;
-                clutter_text.scale_center_y = vertex.y = actor.height / 2;
-                clutter_text.rotation_center_z = vertex;
-                clutter_text.scale_x = 1;
-                Tweener.addTween(clutter_text,
-                                 { "rotation-angle-z": 360,
-                                     time: 5,
-
-                                     transition: 'easeOutBounce'});
-            _showHello();
-*/
-            if(animations.desaturate) {
-                fx = actor.get_effect('desaturate');
-                if (!fx) {
-                    fx = new Clutter.DesaturateEffect();
-                    actor.add_effect_with_name('desaturate', fx);
-                }
-                Tweener.addTween(fx, { factor: 0, time: 20});
-           }
-            //let vertex = new Clutter.Vertex();
-            //actor.scale_center_x = vertex.x = actor.width / 2;
-            //actor.scale_center_y = vertex.y = actor.height / 2;
-            //actor.rotation_center_z = vertex;
-            actor.set_pivot_point(0.5, 0.5);
-            //Tweener.removeTweens(actor, 'opacity');
-            //animations.focus["onComplete"] = removeTweens;
-            //animations.focus["onCompleteParams"] = [actor, 'opacity'] ;
-	    //Tweener.addTween(actor, {'time': 0, 'delay': animations.blur2.delay
-            Tweener.addTween(actor, animations.focus);
+          if(animations.desaturate) {
+            let fx = actor.get_effect('desaturate');
+            if (!fx) {
+              fx = new Clutter.DesaturateEffect();
+              actor.add_effect_with_name('desaturate', fx);
+            }
+            Tweener.addTween(fx, { delay: animations.blur.time, factor: 1, time: 20});
+          }
+          actor.set_pivot_point(0.5, 0.5);
+          Tweener.addTween(actor, animations.blur);
+          if (animations.blur2) {
+            Tweener.addTween(actor, animations.blur2);
+          }
         }
+      }
     }
+  }
+  if(display.focus_window) {
+    let app = tracker.get_window_app(display.focus_window);
+    let windows = app.get_windows();
+    for (i = 0; i < windows.length; i++) {
+      let actor = windows[i].get_compositor_private();
+      if (windows[i] == display.focus_window) {
+        let flashspot = new Flashspot({ x : actor.x, y : actor.y, width: actor.width, height: actor.height}, display.focus_window);
+        flashspot.fire();
+      }
+      actor.set_pivot_point(0.5, 0.5);
+      Tweener.addTween(actor, animations.focus);
+    }
+  }
 }
 
 function removeTweens(actor, prop) {
@@ -229,6 +150,7 @@ function draw_outline() {
 function enable() {
     animations = null;
     let file;
+    Main.notify('focus-effects enabling.');
     try {
         file = Shell.get_file_contents_utf8_sync('.ffxrc.json');
     } catch (e) {
@@ -263,7 +185,7 @@ function enable() {
     Shell._ffx = { animations: animations };
     update();
     focus_connection = tracker.connect('notify::focus-app', update);
-    workspace_connection = global.window_manager.connect('switch-workspace', update);
+    //workspace_connection = global.window_manager.connect('switch-workspace', update);
 }
 
 
@@ -275,6 +197,7 @@ function init() {
 
 
 function disable() {
+    Main.notify('focus-effects disabling.');
     tracker.disconnect(focus_connection);
     global.window_manager.disconnect(workspace_connection);
     let running = app_system.get_running();
