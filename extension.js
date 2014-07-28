@@ -60,24 +60,17 @@ const Flashspot = new Lang.Class({
         this.app = tracker.get_window_app(windowMeta);
         let icon = this.app.create_icon_texture(area.height<area.width? area.height : area.width);
         this.actor.add_actor(icon);
-        this.actor.scale_center_x =  0;
-        this.actor.scale_center_y =  0;
-        icon.set_pivot_point(0.5, 0.5);
-        /*Tweener.addTween(icon, {
-          width: 0,
-          height: 0,
-          rotation_angle_z: 360,
-          time: FLASHSPOT_ANIMATION_OUT_TIME,
-          transition: 'easeInExpo'
-        });*/
+        this.actor.scale_center_x =  0.5;
+        this.actor.scale_center_y =  0.5;
+        this.actor.set_pivot_point(0.5, 0.5);
         Tweener.addTween(this.actor, {
           opacity: 0,
-          y: -this.actor.height,
+          scale_x: 2,
+          scale_y: 2,
           time: FLASHSPOT_ANIMATION_OUT_TIME,
           onComplete: function() {
             this.destroy();
           },
-          transition: 'easeInExpo',
         });
  		    let path = new Gtk.WidgetPath();
         path.append_type(Gtk.IconView);
@@ -87,7 +80,6 @@ const Flashspot = new Lang.Class({
         let green = Math.random() * 0.333 + 0.333;
         let blue = Math.random() * 0.333 + 0.333;
         this.actor.background_color = colorFromRGBA({ 'red': red, 'green': green, 'blue': blue, 'alpha': 1});
-        //this.actor.background_color = colorFromRGBA(context.get_background_color(Gtk.StateFlags.NORMAL));
     },
     fire: function() {
       this.actor.show();
@@ -106,19 +98,8 @@ function update () {
       if ((!display.focus_window) || (display.focus_window != windows[j])) {
         let actor = windows[j].get_compositor_private();
         if(actor) {
-          if(animations.desaturate) {
-            let fx = actor.get_effect('desaturate');
-            if (!fx) {
-              fx = new Clutter.DesaturateEffect();
-              actor.add_effect_with_name('desaturate', fx);
-            }
-            Tweener.addTween(fx, { delay: animations.blur.time, factor: 1, time: 20});
-          }
           actor.set_pivot_point(0.5, 0.5);
           Tweener.addTween(actor, animations.blur);
-          if (animations.blur2) {
-            Tweener.addTween(actor, animations.blur2);
-          }
         }
       }
     }
