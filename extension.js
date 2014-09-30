@@ -39,56 +39,53 @@ let tracker, display, app_system, focus_connection, workspace_connection, animat
 let text, button;
 
 function colorFromRGBA(rgba) {
-            return new Clutter.Color({ red: rgba.red * 255,
-                                       green: rgba.green * 255,
-                                       blue: rgba.blue * 255,
-                                       alpha: rgba.alpha * 255 });
-        }
+  return new Clutter.Color({ red: rgba.red * 255,
+                             green: rgba.green * 255,
+                             blue: rgba.blue * 255,
+                             alpha: rgba.alpha * 255 });
+}
 
 const FLASHSPOT_ANIMATION_OUT_TIME = 2; // seconds
 
 const Flashspot = new Lang.Class({
-    Name: 'Flashspot',
-    Extends: Lightbox.Lightbox,
-
-    _init: function(area, windowMeta) {
-        this.parent(Main.uiGroup, { inhibitEvents: true,
-                                    width: area.width,
-                                    height: area.height });
-        this.actor.style_class = 'focusflash';
-        this.actor.set_position(area.x, area.y);
-        this.app = tracker.get_window_app(windowMeta);
-        let icon = this.app.create_icon_texture(area.height<area.width? area.height : area.width);
-        this.actor.add_actor(icon);
-        this.actor.scale_center_x =  0.5;
-        this.actor.scale_center_y =  0.5;
-        this.actor.set_pivot_point(0.5, 0.5);
-        Tweener.addTween(this.actor, {
-          opacity: 0,
-          scale_x: 2,
-          scale_y: 2,
-          time: FLASHSPOT_ANIMATION_OUT_TIME,
-          onComplete: function() {
-            this.destroy();
-          },
-        });
- 		    let path = new Gtk.WidgetPath();
-        path.append_type(Gtk.IconView);
-        let context = new Gtk.StyleContext();
-        context.set_path(path);
-        let red = Math.random() * 0.333 + 0.333;
-        let green = Math.random() * 0.333 + 0.333;
-        let blue = Math.random() * 0.333 + 0.333;
-        this.actor.background_color = colorFromRGBA({ 'red': red, 'green': green, 'blue': blue, 'alpha': 1});
-    },
-    fire: function() {
-      this.actor.show();
-      this.actor.opacity = 200;
-    }
+  Name: 'Flashspot',
+  Extends: Lightbox.Lightbox,
+  _init: function(area, windowMeta) {
+    this.parent(Main.uiGroup, { inhibitEvents: false,
+                                width: area.width,
+                                height: area.height });
+    this.actor.style_class = 'focusflash';
+    this.actor.set_position(area.x, area.y);
+    this.app = tracker.get_window_app(windowMeta);
+    let icon = this.app.create_icon_texture(area.height<area.width? area.height : area.width);
+    this.actor.add_actor(icon);
+    this.pactor = windowMeta.get_compositor_private();
+    this.actor.scale_center_x =  0.5;
+    this.actor.scale_center_y =  0.5;
+    this.actor.set_pivot_point(0.5, 0.5);
+    let constraint = Clutter.BindConstraint.new(this.pactor, Clutter.BindCoordinate.X, 0.0);
+    this.actor.add_constraint_with_name("x-bind", constraint);
+    constraint = Clutter.BindConstraint.new(this.pactor, Clutter.BindCoordinate.Y, 0.0);
+    this.actor.add_constraint_with_name("y-bind", constraint);
+    constraint = Clutter.BindConstraint.new(this.pactor, Clutter.BindCoordinate.SIZE, 0.0);
+    this.actor.add_constraint_with_name("size-bind", constraint);
+    Tweener.addTween(this.actor, {
+     opacity: 0,
+     time: 3*FLASHSPOT_ANIMATION_OUT_TIME,
+     onComplete: function() {
+       this.destroy();
+     },
+    });
+    let red = Math.random() * 0.333 + 0.333;
+    let green = Math.random() * 0.333 + 0.333;
+    let blue = Math.random() * 0.333 + 0.333;
+    this.actor.background_color = colorFromRGBA({ 'red': red, 'green': green, 'blue': blue, 'alpha': 1});
+  },
+  fire: function() {
+    this.actor.show();
+    this.actor.opacity = 255;
+  }
 });
-
-
-
 
 function update () {
   let running = app_system.get_running();
